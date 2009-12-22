@@ -5,7 +5,7 @@
 
     Why Test-Simple?
         Test-Simple is a super simple way to start testing RIGHT NOW.
-
+        
     Why ok and not ok?
         Test-Simple produces TAP compliant output.
         For more on TAP, see: http://testanything.org
@@ -16,7 +16,7 @@
         intent, the test set cannot ensure that all the required testing
         was performed. An assumption could be made, but error prone
         assumptions are exactly what testing is here to prevent.
-
+    
     Assertions:
         produce TAP output
         provide basic testing functions (plan, ok)
@@ -26,136 +26,163 @@
             any other number    how many failed (including missing or extras)
 
     Example:
-        require_once('Test-Simple.php');
+        require_once('Test-Simple');
         plan(2);
-        is(1 + 1, 2, 'One plus one equals two');
+        ok(1 + 1 = 2, 'One plus one equals two');
         ok( doSomethingAndReturnTrue() , 'doSomethingAndReturnTrue() successful');
 
     Acknowledgements
         Michael G Schwern: http://search.cpan.org/~mschwern/Test-Simple/
         Chris Shiflet: http://shiflett.org/code/test-more.php
+
 */
 
-if ( isset($__Test) ) {
-    __bail('Test-Simple depends on storing data in the global $__Test, which is already in use.');
-}
-
-$__Test = new TestSimple();
-
-register_shutdown_function('__finished');
 class TestSimple {
 
-function plan ($NumberOfTests = NULL, $SkipReason = '') {
-// Get/set intended number of tests
+    protected $Results = array('Failed'=>NULL,'Passed'=>NULL);
+    protected $TestName = array();
+    protected $TestsRun = 0;
+    protected $Skips;
+    protected $NumberOfTests;
 
-#    if ( $NumberOfTests === 'no_plan' ) {
-#    // Equivalent to done_testing() at end of test script
-#        $__Test->NumberOfTests = $NumberOfTests;
-#        return;
-#    } else if ( $NumberOfTests === 'skip_all' ) {
-#    // Equivalent to done_testing() at end of test script
-#        $__Test->NumberOfTests = $NumberOfTests;
-#        $__Test->SkipAllReason = $SkipReason;
-#        diag("Skipping all tests: $SkipReason");
-#        exit();
-#    }
+    protected $notes;
 
-    // Return current value if no params passed (query to the plan)
-    if ( !func_num_args() && isset($__Test->NumberOfTests) ) return $__Test->NumberOfTests;
+    function plan ($NumberOfTests = NULL, $SkipReason = '') {
+    // Get/set intended number of tests
 
-    // Number of tests looks acceptable
-    if (!is_int($NumberOfTests) || 0 > $NumberOfTests) __bail( "Number of tests must be a positive integer. You gave it '$NumberOfTests'" );
+        if ( $NumberOfTests === 'no_plan' ) {
+        // Equivalent to done_testing() at end of test script
+            $this->NumberOfTests = $NumberOfTests;
+            return;
+        } else if ( $NumberOfTests === 'skip_all' ) {
+        // Equivalent to done_testing() at end of test script
+            $this->NumberOfTests = $NumberOfTests;
+            $this->SkipAllReason = $SkipReason;
+            $this->diag("Skipping all tests: $SkipReason");
+            exit();
+        }
 
-    echo "1..$NumberOfTests\n";
-    $__Test->NumberOfTests = $NumberOfTests;
-    return;
-}
+        // Return current value if no params passed (query to the plan)
+        if ( !func_num_args() && isset($this->NumberOfTests) ) return $this->NumberOfTests;
 
-function ok ($Result = NULL, $TestName = NULL) {
-// Confirm param 1 is true (in the PHP sense)
+        // Number of tests looks acceptable
+        if (!is_int($NumberOfTests) || 0 > $NumberOfTests) $this->bail( "Number of tests must be a positive integer. You gave it '$NumberOfTests'" );
 
-    $__Test->CurrentTestNumber++;
+        $skipinfo = '';
+        if ($this->NumberOfTests === 'skip_all') $skipinfo = ' # '.$this->SkipAllReason;
 
-#    if ($__Test->Skips) {
-#        $__Test->Skips--;
-#        return pass('# SKIP '.$__Test->SkipReason);
-#    }
-#
-#    if ($__Test->NumberOfTests === 'skip_all') {
-#        diag("# SKIP '$TestName'");
-#        return TRUE;
-#    }
+        echo "1..${NumberOfTests}${skipinfo}\n";
+        $this->NumberOfTests = $NumberOfTests;
 
-    $__Test->TestsRun++;
+        return;
+    }
 
-    if ( func_num_args() == 0 ) __bail('You must pass ok() a result to evaluate.');
-    if ( func_num_args() == 2 ) $__Test->TestName[$__Test->CurrentTestNumber] = $TestName;
-    if ( func_num_args() >  2 ) __bail('Wrong number of arguments passed to ok()');
+    function ok ($Result = NULL, $TestName = NULL) {
+    // Confirm param 1 is true (in the PHP sense)
 
-    $verdict = $Result ? 'Pass' : 'Fail';
+        $this->CurrentTestNumber++;
+        $this->TestRun++;
 
-    $__Test->Results[$verdict]++;
-    #$__Test->TestResult[$__Test->CurrentTestNumber] = $verdict;
+        if ($this->Skips) {
+            $this->Skips--;
+            $this->TestsSkipped++;
+            echo('ok '.$this->CurrentTestNumber.' # Skipped: '.$this->SkipReason);
+            return TRUE;
+        }
 
-    $caption = $__Test->TestName[$__Test->CurrentTestNumber];
+        if ($this->NumberOfTests === 'skip_all') {
+            $this->TestsSkipped++;
+            $this->diag("SKIP '$TestName'");
+            echo('ok '.$this->CurrentTestNumber.' # Skip');
+            return TRUE;
+        }
 
-    $title = $__Test->CurrentTestNumber
-             . (isset($__Test->TestName[$__Test->CurrentTestNumber]) ? (' - '.$__Test->TestName[$__Test->CurrentTestNumber]) : '');
+        if ( func_num_args() == 0 ) $this->bail('You must pass ok() a result to evaluate.');
+        if ( func_num_args() == 2 ) $this->TestName[$this->CurrentTestNumber] = $TestName;
+        if ( func_num_args() >  2 ) $this->bail('Wrong number of arguments passed to ok()');
 
-    if ($verdict === 'Pass') {
-        echo "ok $title\n";
+        $verdict = $Result ? 'Passed' : 'Failed';
 
-    } else {
-        echo $__Test->LastFail = "not ok $title\n";
+        $this->Results[$verdict]++;
+        #$this->TestResult[$this->CurrentTestNumber] = $verdict;
 
-        $stack = isset($__Test->Backtrace) ? $__Test->Backtrace : debug_backtrace();
-        $call = array_pop($stack);
-        $file = basename($call['file']);
-        $line = $call['line'];
-        unset($__Test->Backtrace);
+        $caption = isset($this->TestName[$this->CurrentTestNumber]) ?  $this->TestName[$this->CurrentTestNumber] : '';
 
-        if ($caption) {
-            diag("  Failed test '$caption'","  at $file line $line.");
-            $__Test->LastFail .= "#   Failed test '$caption'\n#   at $file line $line.";
+        $title = $this->CurrentTestNumber
+                 . (isset($this->TestName[$this->CurrentTestNumber]) ? (' - '.$this->TestName[$this->CurrentTestNumber]) : '');
+
+        if ($verdict === 'Passed') {
+            echo "ok $title\n";
+            return TRUE;
+
         } else {
-            diag("  Failed test at $file line $line.");
-            $__Test->LastFail .= "#   Failed test at $file line $line.";
+            echo $this->LastFail = "not ok $title\n";
+
+            $stack = isset($this->Backtrace) ? $this->Backtrace : debug_backtrace();
+            $call = array_pop($stack);
+            $file = basename($call['file']);
+            $line = $call['line'];
+            unset($this->Backtrace);
+
+            if ($caption) {
+                $this->diag("  Failed test '$caption'","  at $file line $line.");
+                $this->LastFail .= "#   Failed test '$caption'\n#   at $file line $line.";
+            } else {
+                $this->diag("  Failed test at $file line $line.");
+                $this->LastFail .= "#   Failed test at $file line $line.";
+            }
+
+            return FALSE;
         }
     }
 
-    return;
-}
+    function done_testing () {
+    // Change of plans (if there was one in the first place)
 
-function done_testing () {
-// Change of plans (if there was one in the first place)
-
-    plan((int)$__Test->TestsRun);
-    exit();
-}
-
-function __bail ($message = '') {
-// Problem running the program
-
-    echo "Bail out! $message\n";
-    exit(255);
-}
-
-function __finished () {
-// Parting remarks and proper exit code
-
-#    if ($__Test->NumberOfTests === 'no_plan') done_testing();
-#    if ($__Test->NumberOfTests === 'skip_all') plan(0);
-
-    if ($__Test->TestsRun && !isset($__Test->NumberOfTests)) {
-        echo "# Tests were run but no plan() was declared and done_testing() was not seen.\n";
-    } else {
-        if ($__Test->TestsRun !== $__Test->NumberOfTests) echo("# Looks like you planned ".(int)$__Test->NumberOfTests .' tests but ran '.(int)$__Test->TestsRun.".\n");
-
-        if ($__Test->Results['Fail']) echo("# Looks like you failed ". $__Test->Results['Fail'] .' tests of '.$__Test->TestsRun.".\n");
+        $this->plan((int)$this->TestsRun);
+        exit();
     }
-    $retval = ($__Test->Results['Fail'] > 254) ? 254 : $__Test->Results['Fail'];
-    exit($retval);
-}
+
+    function bail ($message = '') {
+    // Problem running the program
+        TestSimple::__bail($message);
+    }
+
+    static function __bail ($message = '') {
+        echo "Bail out! $message\n";
+        exit(255);
+    }
+
+    function diag() {
+    // Print a diagnostic comment
+        $diagnostics = func_get_args();
+        $msg = '';
+        foreach ($diagnostics as $line) $msg .= "# $line\n";
+        echo $msg;
+        return $msg;
+    }
+
+    function __destruct () {
+    // Parting remarks and proper exit code
+
+    #    if ($this->NumberOfTests === 'no_plan') done_testing();
+    #    if ($this->NumberOfTests === 'skip_all') plan(0);
+    
+        if ($this->TestsRun && !isset($this->NumberOfTests)) {
+            echo "# Tests were run but no plan() was declared and done_testing() was not seen.\n";
+        } else {
+            if ($this->TestsRun !== $this->NumberOfTests) echo("# Looks like you planned ".(int)$this->NumberOfTests .' tests but ran '.(int)$this->TestsRun.".\n");
+    
+            if ($this->Results['Failed']) echo("# Looks like you failed ".  $this->Results['Failed'] .' tests of '.(int)$this->TestsRun.".\n");
+        }
+
+        // an extension to help debug
+        if ($this->notes) echo $this->notes;
+
+        $retval = ($this->Results['Failed'] > 254) ? 254 : $this->Results['Failed'];
+        exit($retval);
+    }
 
 }
+
 ?>
