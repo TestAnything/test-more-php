@@ -39,15 +39,15 @@ class TestMore extends TestSimple {
 
 /* Test-More extensions */
 
-    function pass ($name = '') {
+    function pass ($name = NULL) {
         return $this->ok(TRUE, $name);
     }
 
-    function fail ($name = '') {
+    function fail ($name = NULL) {
         return $this->ok(FALSE, $name);
     }
 
-    function __compare ($operator, $thing1, $thing2, $name = '') {
+    function _compare ($operator, $thing1, $thing2, $name = NULL) {
     // Test.php's cmp_ok function accepts coderefs, hmmm
 
         $result = eval("return (\$thing1 $operator \$thing2);");
@@ -55,8 +55,8 @@ class TestMore extends TestSimple {
         return $this->ok($result, $name);
     }
 
-    function is ($thing1, $thing2, $name) {
-        $pass = $this->__compare ('==',$thing1,$thing2,$name);
+    function is ($thing1, $thing2, $name = NULL) {
+        $pass = $this->_compare ('==',$thing1,$thing2,$name);
         if (!$pass) {
             $this->diag("         got: '$thing1'",
                         "    expected: '$thing2'");
@@ -64,19 +64,19 @@ class TestMore extends TestSimple {
         return $pass;
     }
 
-    function isnt ($thing1, $thing2, $name) {
-        $pass = $this->__compare ('!=',$thing1,$thing2,$name);
-        if (!$result) {
+    function isnt ($thing1, $thing2, $name = NULL) {
+        $pass = $this->_compare ('!=',$thing1,$thing2,$name);
+        if (!$pass) {
             $this->diag("         got: '$thing1'",
                         "    expected: '$thing2'");
         }
         return $pass;
     }
 
-    function like ($string, $pattern, $test_name = '') {
+    function like ($string, $pattern, $name = NULL) {
         $pass = preg_match($pattern, $string);
 
-        $ok = $this->ok($pass, $test_name);
+        $ok = $this->ok($pass, $name);
 
         if (!$ok) {
             $this->diag("                  '$string'");
@@ -86,10 +86,10 @@ class TestMore extends TestSimple {
         return $ok;
     }
 
-    function unlike ($string, $pattern, $test_name = '') {
+    function unlike ($string, $pattern, $name = NULL) {
         $pass = !preg_match($pattern, $string);
 
-        $ok = $this->ok($pass, $test_name);
+        $ok = $this->ok($pass, $name);
 
         if (!$ok) {
             $this->diag("                  '$string'");
@@ -99,7 +99,7 @@ class TestMore extends TestSimple {
         return $ok;
     }
 
-    function cmp_ok ($thing1, $operator, $thing2, $test_name = '') {
+    function cmp_ok ($thing1, $operator, $thing2, $name = NULL) {
         eval("\$pass = (\$thing1 $operator \$thing2);");
 
         ob_start();
@@ -110,7 +110,7 @@ class TestMore extends TestSimple {
         var_dump($thing2);
         $_thing2 = trim(ob_get_clean());
 
-        $ok = $this->ok($pass, $test_name);
+        $ok = $this->ok($pass, $name);
 
         if (!$ok) {
             $this->diag("         got: $_thing1");
@@ -123,6 +123,7 @@ class TestMore extends TestSimple {
     function can_ok ($object, $methods) {
         $pass = TRUE;
         $errors = array();
+        if (!is_array($methods)) $methods = array($methods);
 
         foreach ($methods as $method) {
             if (!method_exists($object, $method)) {
@@ -158,12 +159,10 @@ class TestMore extends TestSimple {
         return $ok;
     }
 
-    function __include_fatal_error_handler ($buffer) { 
+    function _include_fatal_error_handler ($buffer) { 
 
-        // No error? say nothing and carry on
-# I thought buffer would grab the error... 
-# see if this can be diverted for use in $message
-#        if (FALSE === strpos($buffer,'Fatal error:')) return FALSE;
+        // Finish successfully? Carry on.
+        if ($buffer === 'included OK') return '';
 
         $module = $this->LastModuleTested;
 
@@ -190,7 +189,7 @@ class TestMore extends TestSimple {
         return $gasp;
     }
 
-    function __include_ok ($module,$type) {
+    function _include_ok ($module,$type) {
         $path = null;
         $full_path = null;
         $retval = 999;
@@ -211,7 +210,10 @@ class TestMore extends TestSimple {
         if ($path) {
             // Try it on windows... need path to PHP executable... hrm
             if ( isset($_SERVER['OS']) && strstr($_SERVER['OS'],'Windows') ) {
-                @exec('"C:\Program Files\Zend\Core\bin\php.exe" -l '.$path, $bunk, $retval);
+                # TODO: find php, or assume in PATH
+                $php_interp = $_SERVER{'PHP'} ? $_SERVER{'PHP'} : 'php.exe';
+                #@exec('"C:\Program Files\Zend\Core\bin\php.exe" -l '.$path, $bunk, $retval);
+                @exec('"'.$php_interp.'" -l '.$path, $bunk, $retval);
             } else { 
                 @exec("php -l $module", $bunk, $retval);
             }
@@ -219,7 +221,7 @@ class TestMore extends TestSimple {
                 // Prep in case we hit error handler
                 $this->Backtrace = debug_backtrace();
                 $this->LastModuleTested = $module;
-                ob_start(array($this,'__include_fatal_error_handler'));
+                ob_start(array($this,'_include_fatal_error_handler'));
                 if ($type === 'include') {
                     $done = (include $module);
                 } else if ($type === 'require') {
@@ -227,6 +229,7 @@ class TestMore extends TestSimple {
                 } else {
                     $this->bail("Second argument to _include_ok() must be 'require' or 'include'");
                 }
+                echo "included OK";
                 ob_end_flush();
                 if (!$done) $error = "  Unable to $type '$module'";
             } else {
@@ -246,14 +249,14 @@ class TestMore extends TestSimple {
     function include_ok ($module) {
     // Test success of including file, but continue testing if possible even if unable to include
 
-        return $this->__include_ok($module,'include');
+        return $this->_include_ok($module,'include');
     }
 
 
     function require_ok ($module) {
     // As include_ok() but exit gracefully if requirement missing
 
-        $ok = $this->__include_ok($module,'require');
+        $ok = $this->_include_ok($module,'require');
 
         // Stop testing if we fail a require test
         // Not a bail because you asked for it
@@ -265,55 +268,44 @@ class TestMore extends TestSimple {
         return $ok;
     } 
 
-    function skip($SkipReason, $num) {
+    function skip($why, $num) {
 
         if ($num < 0) $num = 0;
 
         $this->Skips += $num;
-        $this->SkipAllReason = $why;
+        $this->SkipReason = $why;
 
         return TRUE;
     }
 
-    function eq_array ($thing1, $thing2, $name) {
+    function eq_array ($thing1, $thing2) {
+    // Deprecated comparison function provided for compatibility
     // Look only at values, order is important
-    // "Checks if two arrays are equivalent. This is a deep check, so multi-level structures are handled correctly."
-
-    /* TODO
-        re-number keys deeply to ignore index differences
-    */
-        $ok = $this->is_deeply($thing1, $thing2, $name);
-        $this->diag("eq_array() implemented via is_deeply()");
-        return $ok;
+        $this->diag(" ! eq_array() is a deprecated comparison function provided for compatibility. Use array_diff() or similar instead.");
+        return !array_diff($thing1, $thing2);
     }
 
-    function eq_hash ($thing1, $thing2, $name) {
-    // Look only at keys and values, order is NOT important
-    // "Determines if the two hashes contain the same keys and values. This is a deep check."
-    /* TODO
-        sort by keys deeply to ignore order differences
-    */
-        $ok = $this->is_deeply($thing1, $thing2, $name);
-        $this->diag("eq_hash() implemented via is_deeply()");
-        return $ok;
+    function eq_hash ($thing1, $thing2) {
+    // Deprecated comparison function provided for compatibility
+    // Look at keys and values, order is NOT important
+        $this->diag(" ! eq_hash() is a deprecated comparison function provided for compatibility. Use array_diff() or similar instead.");
+        return !array_diff_assoc($thing1, $thing2);
     }
 
-    function eq_set ($thing1, $thing2, $name) {
+    function eq_set ($thing1, $thing2, $name = NULL) {
+    // Deprecated comparison function provided for compatibility
     // Look only at values, duplicates are NOT important
-    /* TODO
-        re-number keys deeply to ignore index differences
-        sort by values deeply to ignore order differences
-
-        duplicates will still matter, as per Test::More behavior
-    */
-        $ok = $this->is_deeply($thing1, $thing2, $name);
-        $this->diag("eq_set() implemented via is_deeply()");
-        return $ok;
+        $this->diag(" ! eq_set() is a deprecated comparison function provided for compatibility. Use array_diff() or similar instead.");
+        $a = $thing1;
+        sort($a);
+        $b = $thing2;
+        sort($b);
+        return !array_diff($a, $b);
     }
 
     function is_deeply ($thing1, $thing2, $name = NULL) {
 
-        $pass = $this->__compare_deeply($thing1, $thing2, $name);
+        $pass = $this->_compare_deeply($thing1, $thing2, $name);
 
         $ok = $this->ok($pass,$name);
 
@@ -334,7 +326,7 @@ class TestMore extends TestSimple {
 
     function isnt_deeply ($thing1, $thing2, $name = NULL) {
 
-        $pass = !$this->__compare_deeply($thing1, $thing2, $name);
+        $pass = !$this->_compare_deeply($thing1, $thing2, $name);
 
         $ok = $this->ok($pass,$name);
 
@@ -343,12 +335,12 @@ class TestMore extends TestSimple {
         return $ok;
     }
 
-    function __compare_deeply ($thing1, $thing2) {
+    function _compare_deeply ($thing1, $thing2) {
         
         if (is_array($thing1) && is_array($thing2)) {
-            if (count($thing1) === count($thing2)) {
+            if ((count($thing1) === count($thing2)) && !array_diff_key($thing1,$thing2)) {
                 foreach(array_keys($thing1) as $key){
-                    $pass = $this->__compare_deeply($thing1[$key],$thing2[$key]);
+                    $pass = $this->_compare_deeply($thing1[$key],$thing2[$key]);
                     if(!$pass) {
                         return FALSE;
                     }

@@ -50,6 +50,8 @@ class TestSimple {
     function plan ($NumberOfTests = NULL, $SkipReason = '') {
     // Get/set intended number of tests
 
+        if ( is_int($this->NumberOfTests) && !is_null($NumberOfTests) ) $this->diag('The plan was already output.');
+
         if ( $NumberOfTests === 'no_plan' ) {
         // Equivalent to done_testing() at end of test script
             $this->NumberOfTests = $NumberOfTests;
@@ -68,6 +70,7 @@ class TestSimple {
         // Number of tests looks acceptable
         if (!is_int($NumberOfTests) || 0 > $NumberOfTests) $this->bail( "Number of tests must be a positive integer. You gave it '$NumberOfTests'" );
 
+        // If just reporting
         $skipinfo = '';
         if ($this->NumberOfTests === 'skip_all') $skipinfo = ' # '.$this->SkipAllReason;
 
@@ -81,19 +84,19 @@ class TestSimple {
     // Confirm param 1 is true (in the PHP sense)
 
         $this->CurrentTestNumber++;
-        $this->TestRun++;
+        $this->TestsRun++;
 
         if ($this->Skips) {
             $this->Skips--;
             $this->TestsSkipped++;
-            echo('ok '.$this->CurrentTestNumber.' # Skipped: '.$this->SkipReason);
+            echo('ok '.$this->CurrentTestNumber.' # skip '.$this->SkipReason."\n");
             return TRUE;
         }
 
         if ($this->NumberOfTests === 'skip_all') {
             $this->TestsSkipped++;
             $this->diag("SKIP '$TestName'");
-            echo('ok '.$this->CurrentTestNumber.' # Skip');
+            echo('ok '.$this->CurrentTestNumber." # skip\n");
             return TRUE;
         }
 
@@ -138,17 +141,16 @@ class TestSimple {
 
     function done_testing () {
     // Change of plans (if there was one in the first place)
-
         $this->plan((int)$this->TestsRun);
         exit();
     }
 
     function bail ($message = '') {
     // Problem running the program
-        TestSimple::__bail($message);
+        TestSimple::_bail($message);
     }
 
-    static function __bail ($message = '') {
+    static function _bail ($message = '') {
         echo "Bail out! $message\n";
         exit(255);
     }

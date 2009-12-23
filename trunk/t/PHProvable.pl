@@ -13,7 +13,7 @@
 #
 # USAGE:
 #   Your PHP test script should be named like this: TESTSCRIPTNAME.t.php.
-#   YOu can either copy this file and name it TESTSCRIPTNAME.t or call it
+#   You can either copy this file and name it TESTSCRIPTNAME.t or call it
 #   explicitly as the first and only argument:
 #       PHProvable.pl TESTSCRIPTNAME.t.php
 #   The first method means you end up with a stub for each PHP script,
