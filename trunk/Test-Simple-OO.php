@@ -61,6 +61,7 @@ class TestSimple {
     protected $TestsRun = 0;
     protected $Skips;
     protected $NumberOfTests;
+    protected $Filter;
 
     protected $notes;
 
@@ -99,6 +100,10 @@ class TestSimple {
 
     function ok ($Result = NULL, $TestName = NULL) {
     // Confirm param 1 is true (in the PHP sense)
+        // Unload the buffer regularly
+        if ($this->Filter) {
+            ob_flush();
+        }
 
         $this->CurrentTestNumber++;
         $this->TestsRun++;
@@ -176,8 +181,9 @@ class TestSimple {
     // Print a diagnostic comment
         $diagnostics = func_get_args();
         $msg = '';
-        foreach ($diagnostics as $line) $msg .= "# $line\n";
+        foreach ($diagnostics as $line) $msg .= "# ".str_replace("\n","\n# ",$line)."\n";
         echo $msg;
+        if ($this->Filter) ob_flush();
         return $msg;
     }
 
@@ -198,8 +204,17 @@ class TestSimple {
         // an extension to help debug
         if ($this->notes) echo $this->notes;
 
+        if ($this->Filter) ob_end_flush();
+
         $retval = ($this->Results['Failed'] > 254) ? 254 : $this->Results['Failed'];
         exit($retval);
+    }
+
+    function web_output($callback = NULL) {
+    // Basic web formatting (newlines) of output via ob filter
+        if (isset($callback)) $this->Filter = $callback;
+        if (!isset($this->Filter)) $this->Filter = create_function('$string','$output = str_replace("\n","<br />\n",$string); return $output;');
+        ob_start($this->Filter);
     }
 
 }
