@@ -5,7 +5,7 @@
 
     Why Test-Simple?
         Test-Simple is a super simple way to start testing RIGHT NOW.
-        
+
     Why ok and not ok?
         Test-Simple produces TAP compliant output.
         For more on TAP, see: http://testanything.org
@@ -16,7 +16,7 @@
         intent, the test set cannot ensure that all the required testing
         was performed. An assumption could be made, but error prone
         assumptions are exactly what testing is here to prevent.
-    
+
     Other testing libraries:
         You can replace Test-Simple with Test-More without making any changes
         to existing test code, providing access to further testing methods.
@@ -32,17 +32,19 @@
             any other number    how many failed (including missing or extras)
 
     Example:
-        require_once('Test-More-OO.php');
-        $t = new TestMore();
+        require_once('Test-Simple-OO.php');
+        $t = new TestSimple();
         $t->plan(2);
-        $t->ok(1 + 1 = 2, 'One plus one equals two');
+        $t->ok(1 + 1 === 2, 'One plus one equals two');
         $t->ok( doSomethingAndReturnTrue() , 'doSomethingAndReturnTrue() successful');
+        function doSomethingAndReturnTrue () { return TRUE; }
 
     Procedural Example:
-        require_once('Test-Simple');
+        require_once('Test-Simple.php');
         plan(2);
-        ok(1 + 1 = 2, 'One plus one equals two');
+        ok(1 + 1 === 2, 'One plus one equals two');
         ok( doSomethingAndReturnTrue() , 'doSomethingAndReturnTrue() successful');
+        function doSomethingAndReturnTrue () { return TRUE; }
 
     From a browser
         If you are running Test-Simple on a web server and want slightly more web-readable
@@ -202,12 +204,12 @@ class TestSimple {
 
     #    if ($this->NumberOfTests === 'no_plan') done_testing();
     #    if ($this->NumberOfTests === 'skip_all') plan(0);
-    
+
         if ($this->TestsRun && !isset($this->NumberOfTests)) {
             echo "# Tests were run but no plan() was declared and done_testing() was not seen.\n";
         } else {
             if ($this->TestsRun !== $this->NumberOfTests) echo("# Looks like you planned ".(int)$this->NumberOfTests .' tests but ran '.(int)$this->TestsRun.".\n");
-    
+
             if ($this->Results['Failed']) echo("# Looks like you failed ".  $this->Results['Failed'] .' tests of '.(int)$this->TestsRun.".\n");
         }
 

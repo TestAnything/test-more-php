@@ -29,14 +29,16 @@
         require_once('Test-More-OO.php');
         $t = new TestMore();
         $t->plan(2);
-        $t->ok(1 + 1 = 2, 'One plus one equals two');
+        $t->ok(1 + 1 === 2, 'One plus one equals two');
         $t->ok( doSomethingAndReturnTrue() , 'doSomethingAndReturnTrue() successful');
+        function doSomethingAndReturnTrue () { return TRUE; }
 
     Procedural Example:
         require_once('Test-More.php');
         plan(2);
-        ok(1 + 1 = 2, 'One plus one equals two');
+        ok(1 + 1 === 2, 'One plus one equals two');
         ok( doSomethingAndReturnTrue() , 'doSomethingAndReturnTrue() successful');
+        function doSomethingAndReturnTrue () { return TRUE; }
 
     From a browser
         If you are running Test-Simple on a web server and want slightly more web-readable
@@ -185,7 +187,7 @@ class TestMore extends TestSimple {
         return $ok;
     }
 
-    function _include_fatal_error_handler ($buffer) { 
+    function _include_fatal_error_handler ($buffer) {
 
         // Finish successfully? Carry on.
         if ($buffer === 'included OK') return '';
@@ -257,7 +259,7 @@ class TestMore extends TestSimple {
             $error = "  Cannot find ${type}d file '$module'";
         }
 
-        $pass = !$retval && $done; 
+        $pass = !$retval && $done;
         $ok = $this->ok($pass, "$type $module" );
         if ($error) $this->diag($error);
         if ($error && $path) $this->diag("  Resolved $module as $full_path");
@@ -284,7 +286,7 @@ class TestMore extends TestSimple {
         }
 
         return $ok;
-    } 
+    }
 
     function skip($why, $num) {
 
@@ -354,7 +356,7 @@ class TestMore extends TestSimple {
     }
 
     function _compare_deeply ($thing1, $thing2) {
-        
+
         if (is_array($thing1) && is_array($thing2)) {
             if ((count($thing1) === count($thing2)) && !array_diff_key($thing1,$thing2)) {
                 foreach(array_keys($thing1) as $key){
@@ -420,7 +422,7 @@ class TestMore extends TestSimple {
             // In some situations you might need to specify a php interpreter.
             if ( isset($_SERVER['PHP']) ) {
                 $new_interp_command = escapeshellcmd($_SERVER['PHP']);
-            } else { 
+            } else {
                 $new_interp_command = 'php';
             }
         }
