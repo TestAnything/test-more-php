@@ -13,5 +13,6 @@ $__Test = new TestSimple();
 function plan()         { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'plan'),$args); }
 function ok()           { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'ok'),$args); }
 function diag()         { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'diag'),$args); }
+function web_output()   { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'web_output'),$args); }
 
 ?>
