@@ -17,6 +17,12 @@
         was performed. An assumption could be made, but error prone
         assumptions are exactly what testing is here to prevent.
     
+    Other testing libraries:
+        You can replace Test-Simple with Test-More without making any changes
+        to existing test code, providing access to further testing methods.
+        You can also replace any other PHP Test::More workalike library out there
+        with Test-More.php and it will work without making any changes to the code.
+
     Assertions:
         produce TAP output
         provide basic testing functions (plan, ok)
@@ -37,6 +43,10 @@
         plan(2);
         ok(1 + 1 = 2, 'One plus one equals two');
         ok( doSomethingAndReturnTrue() , 'doSomethingAndReturnTrue() successful');
+
+    From a browser
+        If you are running Test-Simple on a web server and want slightly more web-readable
+        output, call the web_output() method/function.
 
     Updates
         Updates will be psoted tot he Google code page:
