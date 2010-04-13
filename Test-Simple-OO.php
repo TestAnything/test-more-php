@@ -49,7 +49,7 @@
         output, call the web_output() method/function.
 
     Updates
-        Updates will be psoted tot he Google code page:
+        Updates will be posted to the Google code page:
         http://code.google.com/p/test-more-php/
 
     Bugs
