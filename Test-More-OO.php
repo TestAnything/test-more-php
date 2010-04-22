@@ -337,8 +337,8 @@ class TestMore extends TestSimple {
                 #$stringified[] = implode("\n#",explode("\n",$dump));
                 $stringified[] = str_replace("\n","\n#   ",$dump);
             }
-            $this->diag(" wanted:  ".$stringified[0]);
-            $this->diag("    got:  ".$stringified[1]);
+            $this->diag("         got:  ".$stringified[0]);
+            $this->diag("    expected:  ".$stringified[1]);
         }
 
         return $ok;
