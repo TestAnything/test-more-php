@@ -91,7 +91,7 @@ class TestSimple {
             $this->NumberOfTests = $NumberOfTests;
             $this->SkipAllReason = $SkipReason;
             $this->diag("Skipping all tests: $SkipReason");
-            exit();
+            return unset($this);
         }
 
         // Return current value if no params passed (query to the plan)
@@ -176,7 +176,7 @@ class TestSimple {
     function done_testing () {
     // Change of plans (if there was one in the first place)
         $this->plan((int)$this->TestsRun);
-        exit();
+        return unset($this);
     }
 
     function bail ($message = '') {
@@ -218,8 +218,8 @@ class TestSimple {
 
         if ($this->Filter) ob_end_flush();
 
-        $retval = ($this->Results['Failed'] > 254) ? 254 : $this->Results['Failed'];
-        exit($retval);
+        $retval = ($this->Results['Failed'] > 254) ? 254 : (int)$this->Results['Failed'];
+        $this->_exit_handler($retval);
     }
 
     function web_output($callback = NULL) {
@@ -227,6 +227,17 @@ class TestSimple {
         if (isset($callback)) $this->Filter = $callback;
         if (!isset($this->Filter)) $this->Filter = create_function('$string','$output = str_replace("\n","<br />\n",$string); return $output;');
         ob_start($this->Filter);
+    }
+
+    public $exit_handler = NULL;
+    protected function _exit_handler ($retval) {
+    // Useful for mutliple instances, so the first to be destroyed doesn't end the run early
+        if (isset($this->exit_handler)) {
+            $x = $this->exit_handler;
+            $x($retval);
+        } else {
+            exit($retval);
+        }
     }
 
 }
