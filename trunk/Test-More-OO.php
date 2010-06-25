@@ -170,6 +170,18 @@ class TestMore extends TestSimple {
     }
 
     function isa_ok ($object, $expected_class, $object_name = 'The object') {
+
+        if ( is_a($object, $expected_class) ) {
+            $ok = $this->ok(TRUE, "$object_name isa $expected_class");
+        } else {
+            $ok = $this->ok(FALSE, "$object_name isn't a '$expected_class' it's a '". get_class($object) ."'"
+            );
+        }
+
+        return $ok;
+    }
+
+    function isclass_ok ($object, $expected_class, $object_name = 'The object') {
         $got_class = get_class($object);
 
         if (version_compare(phpversion(), '5', '>=')) {
@@ -179,9 +191,9 @@ class TestMore extends TestSimple {
         }
 
         if ($pass) {
-            $ok = $this->ok(TRUE, "$object_name isa $expected_class");
+            $ok = $this->ok(TRUE, "$object_name class is $expected_class");
         } else {
-            $ok = $this->ok(FALSE, "$object_name isn't a '$expected_class' it's a '$got_class'");
+            $ok = $this->ok(FALSE, "$object_name's class isn't '$expected_class', it's '$got_class'");
         }
 
         return $ok;
