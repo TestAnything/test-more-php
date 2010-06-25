@@ -91,7 +91,8 @@ class TestSimple {
             $this->NumberOfTests = $NumberOfTests;
             $this->SkipAllReason = $SkipReason;
             $this->diag("Skipping all tests: $SkipReason");
-            return unset($this);
+            unset($this);
+            return;
         }
 
         // Return current value if no params passed (query to the plan)
@@ -176,7 +177,8 @@ class TestSimple {
     function done_testing () {
     // Change of plans (if there was one in the first place)
         $this->plan((int)$this->TestsRun);
-        return unset($this);
+        unset($this);
+        return;
     }
 
     function bail ($message = '') {

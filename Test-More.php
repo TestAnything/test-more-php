@@ -25,6 +25,7 @@ function unlike()       { global $__Test; $args = func_get_args(); return call_u
 function cmp_ok()       { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'cmp_ok'),$args); }
 function can_ok()       { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'can_ok'),$args); }
 function isa_ok()       { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'isa_ok'),$args); }
+function isclass_ok()   { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'isclass_ok'),$args); }
 function include_ok()   { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'include_ok'),$args); }
 function require_ok()   { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'require_ok'),$args); }
 function skip()         { global $__Test; $args = func_get_args(); return call_user_func_array(array($__Test,'skip'),$args); }
