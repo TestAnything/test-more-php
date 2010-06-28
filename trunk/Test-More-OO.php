@@ -429,7 +429,6 @@ class TestMore extends TestSimple {
 
     function interp ($new_interp_command=NULL) {
     // Return the command used to invoke the PHP interpreter, such as for exec()
-
         if ($new_interp_command == NULL && $this->interp == '') {
             // In some situations you might need to specify a php interpreter.
             if ( isset($_SERVER['PHP']) ) {
@@ -438,18 +437,15 @@ class TestMore extends TestSimple {
                 $new_interp_command = 'php';
             }
         }
-        if ($new_interp_command != $this->interp) {
+        if ($new_interp_command !== NULL && $new_interp_command != $this->interp) {
             $this->interp = $new_interp_command;
 
             // Check that we can use the interpreter
             @exec('"'.$this->interp.'" -v', $bunk, $retval);
-            if ($retval!==0) $this->bail("Unable to run PHP interpreter with '$this->interp'. Try setting the PHP environmant variable to the path of the interpreter.");
+            if ($retval!==0) $this->bail("Unable to run PHP interpreter with '$this->interp'. Try setting the PHP environment variable to the path of the interpreter.");
         }
 
         return $this->interp;
     }
 
-
 }
-
-?>
